@@ -4,45 +4,56 @@ const express = require('express');
 const cors = require('cors');
 const PORT = process.env.PORT || 3000;
 const app = express();
+const superagent = require('superagent')
 app.use(cors());
-app.use(express.static('./'));
 app.get('/location', locationHandler);
-app.get('/weather', weatherHandler)
+app.get('/weather', weatherHandler);
+app.get('/events', eventHandler);
+app.get('/movies', moviesHandler);
+app.get('/yelp', yelpHandelr);
+app.get('/trails', trailsHandler);
+app.get('/', (req, res) => {
+    res.status(200).send('great job')
+});
+let getLocation = require('./modules/location');
+let getWeather = require('./modules/weather');
+let getEvent = require('./modules/event');
+let getMovie = require('./modules/movie');
+let getYelp = require('./modules/yelp');
+let getTrail = require('./modules/trail');
 
 function locationHandler(req, res) {
-    let location = getLocation(req.query.data);
-    res.status(200).json(location)
-}
-
-function getLocation(city) {
-    let locations = require('./data/geo.json')
-    return new Location(city, locations)
-}
-
-function Location(city, data) {
-    this.search_qurey = city,
-        this.formatted_address = data.results[0].formatted_address,
-        this.lat = data.results[0].geometry.location.lat,
-        this.lng = data.results[0].geometry.location.lng
+    getLocation(req.query.city)
+        .then(locationData => {
+            res.status(200).json(locationData)
+        })
 }
 
 function weatherHandler(req, res) {
-    let weather = getWeather(req.query.data);
-    res.status(200).json(weather)
+    getWeather(req.query)
+        .then(weatherData => res.status(200).json(weatherData))
 }
 
-function getWeather(city) {
-    let weathers = require('./data/darksky.json')
-    return weathers.daily.data.map(day => {
-        return new Weather(day)
-    })
+
+function eventHandler(req, res) {
+    getEvent(req.query)
+        .then(eventData => res.status(200).json(eventData));
 }
 
-function Weather(day) {
-    this.forcast = day.summary;
-    this.time = new Date(day.time * 1000).toDateString()
+function moviesHandler(req, res) {
+    getMovie(req.query)
+        .then(movieData => res.status(200).json(movieData));
 }
 
+function yelpHandelr(req, res) {
+    getYelp(req.query)
+        .then(yelpData => res.status(200).json(yelpData));
+}
+
+function trailsHandler(req, res) {
+    getTrail(req.query)
+        .then(trailData => res.status(200).json(trailData));
+}
 app.get('/boo', (req, res) => {
     throw new error('poo')
 })
